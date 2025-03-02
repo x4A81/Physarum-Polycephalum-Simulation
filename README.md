@@ -17,5 +17,9 @@ To compile:
 In the terminal:<br>
 `./sim`
 
+NB. The file is formmatted as a:<br>
+ELF 64-bit LSB executable, x86-64.<br>
+Refer to the [compiling](#compiling) section to see how to compile this program.
+
 # Author
 me!
