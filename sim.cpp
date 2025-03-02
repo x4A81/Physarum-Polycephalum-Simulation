@@ -15,16 +15,13 @@ SDL_Renderer* renderer;
 SDL_Window* window;
 SDL_Texture* pheromoneTexture;
 
-// Agent structure includes x position, y position, and angle
-typedef struct t_agent {
-    float x, y, angle;
-} t_agent;
-
 // Pheromone grid
 alignas(32) float pheromones[WIDTH][HEIGHT] = {0};
 
 // Agent array
-alignas(32) t_agent agent[NUM_AGENTS];
+alignas(32) float agent_x[NUM_AGENTS];
+alignas(32) float agent_y[NUM_AGENTS];
+alignas(32) float agent_angle[NUM_AGENTS];
 
 // Initialises agents in a circle facing inwards
 void init_agents() {
@@ -34,15 +31,15 @@ void init_agents() {
     
     for (int current_agent = 0; current_agent < NUM_AGENTS; current_agent++) {
         float angle = static_cast<float>(current_agent) / NUM_AGENTS * 2.0f * M_PI;
-        agent[current_agent].x = center_x + cos(angle) * radius;
-        agent[current_agent].y = center_y + sin(angle) * radius;
-        agent[current_agent].angle = atan2(center_y - agent[current_agent].y, 
-                                         center_x - agent[current_agent].x);
+        agent_x[current_agent] = center_x + cos(angle) * radius;
+        agent_y[current_agent] = center_y + sin(angle) * radius;
+        agent_angle[current_agent] = atan2(center_y - agent_y[current_agent], 
+                                         center_x - agent_x[current_agent]);
     }
 }
 
 // Agents sense pheromones
-static inline float sense(float x, float y, float angle) {
+inline float sense(float x, float y, float angle) {
     // Find the sensed pheromone
     int sense_x = static_cast<int>(x + cos(angle) * SENSOR_DISTANCE);
     int sense_y = static_cast<int>(y + sin(angle) * SENSOR_DISTANCE);
@@ -55,70 +52,73 @@ static inline float sense(float x, float y, float angle) {
 
 void update_agents() {
     for (int current_agent = 0; current_agent < NUM_AGENTS; current_agent++) {
+        float x = agent_x[current_agent];
+        float y = agent_y[current_agent];
+        float angle = agent_angle[current_agent];
 
         // Sense Left
-        float left = sense(agent[current_agent].x, agent[current_agent].y,
-             agent[current_agent].angle - SENSOR_ANGLE);
+        float left = sense(x, y, angle - SENSOR_ANGLE);
         
         // Sense Forward
-        float forward = sense(agent[current_agent].x, agent[current_agent].y,
-             agent[current_agent].angle);
+        float forward = sense(x, y, angle);
     
         // Sense Right
-        float right = sense(agent[current_agent].x, agent[current_agent].y,
-             agent[current_agent].angle + SENSOR_ANGLE);
+        float right = sense(x, y, angle + SENSOR_ANGLE);
 
         // Add some random steering
         float random_steer = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * RANDOM_STRENGTH;
 
         // Turn towards the direction with the most pheromones
         if (forward > left && forward > right) {
-            agent[current_agent].angle += random_steer;
+            agent_angle[current_agent] += random_steer;
         } else if (left > right) {
-            agent[current_agent].angle -= TURN_SPEED + random_steer;
+            agent_angle[current_agent] -= TURN_SPEED + random_steer;
         } else if (right > left) {
-            agent[current_agent].angle += TURN_SPEED + random_steer;
+            agent_angle[current_agent] += TURN_SPEED + random_steer;
         } else {
-            agent[current_agent].angle += random_steer;
+            agent_angle[current_agent] += random_steer;
         }
         
+        x = agent_x[current_agent];
+        y = agent_y[current_agent];
+        angle = agent_angle[current_agent];
+
         // Move the agent
-        float theta = agent[current_agent].angle;
-        agent[current_agent].x += MOVE_SPEED * cos(theta);
-        agent[current_agent].y += MOVE_SPEED * sin(theta);
+        agent_x[current_agent] += MOVE_SPEED * cos(angle);
+        agent_y[current_agent] += MOVE_SPEED * sin(angle);
         
         // Boundary conditions
         int turn_around = 0;
-        if (agent[current_agent].x >= WIDTH) {
-            agent[current_agent].x = WIDTH;
+        if (x >= WIDTH) {
+            agent_x[current_agent] = WIDTH;
             turn_around = 1;
         }
         
-        if (agent[current_agent].x <= 0) {
-            agent[current_agent].x = 0;
+        if (x <= 0) {
+            agent_x[current_agent] = 0;
             turn_around = 1;
         }
 
-        if (agent[current_agent].y >= HEIGHT) {
-            agent[current_agent].y = HEIGHT;
+        if (y >= HEIGHT) {
+            agent_y[current_agent] = HEIGHT;
             turn_around = 1;
         }
 
-        if (agent[current_agent].y <= 0) {
-            agent[current_agent].y = 0;
+        if (y <= 0) {
+            agent_y[current_agent] = 0;
             turn_around = 1;
         }
 
         if (turn_around) {
-            agent[current_agent].angle += M_PI;
+            agent_angle[current_agent] += M_PI;
         }
         
         // Randomness
-        agent[current_agent].angle += ((rand() % 3 - 1) * 0.1f);
+        agent_angle[current_agent] += ((rand() % 3 - 1) * 0.1f);
 
         // Leave a pheromone trail
-        int x_idx = static_cast<int>(agent[current_agent].x);
-        int y_idx = static_cast<int>(agent[current_agent].y);
+        int x_idx = static_cast<int>(agent_x[current_agent]);
+        int y_idx = static_cast<int>(agent_y[current_agent]);
 
         x_idx = std::max(0, std::min(x_idx, WIDTH - 1));
         y_idx = std::max(0, std::min(y_idx, HEIGHT - 1));
