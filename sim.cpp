@@ -18,7 +18,7 @@ SDL_Texture* pheromoneTexture;
 // Pheromone grid
 alignas(32) float pheromones[WIDTH][HEIGHT] = {0};
 
-// Agent array
+// Agent arrays
 alignas(32) float agent_x[NUM_AGENTS];
 alignas(32) float agent_y[NUM_AGENTS];
 alignas(32) float agent_angle[NUM_AGENTS];

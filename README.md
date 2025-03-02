@@ -11,7 +11,7 @@ If you want to compile this project you will need to have installed:<br>
 Installation guide to SDL3 can be found [here.](https://github.com/libsdl-org/SDL/blob/main/INSTALL.md)<br>
 
 To compile:
-`g++ sim.cpp -o sim -lSDL3`
+`g++ -O3 -o sim.cpp sim -lSDL3`
 
 # Running
 In the terminal:<br>
