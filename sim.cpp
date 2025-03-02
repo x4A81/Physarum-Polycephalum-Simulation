@@ -42,7 +42,7 @@ void init_agents() {
 }
 
 // Agents sense pheromones
-float sense(float x, float y, float angle) {
+static inline float sense(float x, float y, float angle) {
     // Find the sensed pheromone
     int sense_x = static_cast<int>(x + cos(angle) * SENSOR_DISTANCE);
     int sense_y = static_cast<int>(y + sin(angle) * SENSOR_DISTANCE);
