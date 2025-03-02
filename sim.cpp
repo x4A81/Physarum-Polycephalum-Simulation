@@ -16,7 +16,7 @@ SDL_Window* window;
 SDL_Texture* pheromoneTexture;
 
 // Pheromone grid
-alignas(32) float pheromones[WIDTH][HEIGHT] = {0};
+alignas(32) float pheromones[WIDTH*HEIGHT] = {0};
 
 // Agent arrays
 alignas(32) float agent_x[NUM_AGENTS];
@@ -47,7 +47,7 @@ inline float sense(float x, float y, float angle) {
     sense_y = std::max(0, std::min(sense_y, HEIGHT - 1));
     
     // Return the sensed pheromone
-    return pheromones[sense_x][sense_y];
+    return pheromones[sense_y *WIDTH + sense_x];
 }
 
 void update_agents() {
@@ -123,7 +123,7 @@ void update_agents() {
         x_idx = std::max(0, std::min(x_idx, WIDTH - 1));
         y_idx = std::max(0, std::min(y_idx, HEIGHT - 1));
         
-        pheromones[x_idx][y_idx] = 0.9f;
+        pheromones[y_idx * WIDTH + x_idx] = 0.9f;
     }
 }
 
@@ -134,20 +134,19 @@ void update_pheromone_texture() {
     SDL_LockTexture(pheromoneTexture, NULL, &pixels, &pitch);
 
     Uint32* dst = static_cast<Uint32*>(pixels);
-    for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-            float intensity = pheromones[x][y];
-            
-            // Convert intensity to RGB colors
-            Uint8 r = static_cast<Uint8>(sin(intensity) * 255);
-            Uint8 g = static_cast<Uint8>((intensity*intensity) * 255);
-            Uint8 b = static_cast<Uint8>(sqrt(intensity) * 255);
-            Uint8 a = static_cast<Uint8>(intensity * 255);
-            
-            // Pack colors into a 32-bit value
-            dst[y * WIDTH + x] = (r << 24) | (g << 16) | (b << 8) | a;
-            pheromones[x][y] *= DECAY_RATE;
-        }
+    
+    for (int i = 0; i < HEIGHT*WIDTH; i++) {
+        float intensity = pheromones[i];
+        
+        // Convert intensity to RGB colors
+        Uint8 r = static_cast<Uint8>(sin(intensity) * 255);
+        Uint8 g = static_cast<Uint8>((intensity*intensity) * 255);
+        Uint8 b = static_cast<Uint8>(sqrt(intensity) * 255);
+        Uint8 a = static_cast<Uint8>(intensity * 255);
+        
+        // Pack colors into a 32-bit value
+        dst[i] = (r << 24) | (g << 16) | (b << 8) | a;
+        pheromones[i] *= DECAY_RATE;
     }
 
     SDL_UnlockTexture(pheromoneTexture);
