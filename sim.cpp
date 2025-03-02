@@ -89,22 +89,22 @@ void update_agents() {
         
         // Boundary conditions
         int turn_around = 0;
-        if (x >= WIDTH) {
+        if (x > WIDTH) {
             agent_x[current_agent] = WIDTH;
             turn_around = 1;
         }
         
-        if (x <= 0) {
+        if (x < 0) {
             agent_x[current_agent] = 0;
             turn_around = 1;
         }
 
-        if (y >= HEIGHT) {
+        if (y > HEIGHT) {
             agent_y[current_agent] = HEIGHT;
             turn_around = 1;
         }
 
-        if (y <= 0) {
+        if (y < 0) {
             agent_y[current_agent] = 0;
             turn_around = 1;
         }
